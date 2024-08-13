@@ -1,0 +1,293 @@
+openapi: 3.0.3
+info:
+  title: Социальная сеть для путешественников
+  termsOfService: http://swagger.io/terms/
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+paths:
+  /posts:
+    post:
+      summary: Create a new travel post
+      description: Create a new travel post with text
+      operationId: createPost
+      requestBody:
+        description: new post body
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/newPost' 
+
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/newPostResponse'          
+        '400':
+          description: Invalid params supplied
+        '422':
+          description: Validation exception
+        '500':
+          description: Internal Error
+  /images:
+    post:
+      summary: Upload an image
+      description: Upload an image for travel post
+      operationId: uploadImage
+      requestBody:
+        content:
+          image/png:
+            schema: 
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/uploadedImage' 
+        '500':
+          description: Internal Error        
+  /comments:
+    post:
+      summary: Leave a comment
+      description: Leave a comment under the post
+      operationId: leaveComment
+      requestBody:
+        description: new post body
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment' 
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/commentResponse' 
+        '400':
+          description: Invalid params supplied    
+        '500':
+          description: Internal Error      
+  /ratings:
+    post:
+      summary: Leave a rating
+      description: Leave a rating under the post
+      operationId: leaveRating
+      requestBody:
+        description: rating body
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rating' 
+      responses:
+        '200':
+          description: Successful operation   
+        '400':
+          description: Invalid params supplied
+        '500':
+          description: Internal Error  
+  /feeds/{user_id}:
+    get:
+      summary: Get feed
+      description: Get feed with posts of subscribed
+      operationId: getFeed
+      parameters: 
+        - name: user_id
+          in: path
+          description: who should get the feed
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset for getting feed
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: post limit for getting feed
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feed'    
+        '400':
+          description: Invalid params supplied
+        '500':
+          description: Internal Error  
+  /places/search:
+    post:
+      summary: search places
+      description: search places by text
+      operationId: searchPlaces   
+      requestBody:
+        description: input params for search
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/searchPlaces' 
+      responses:
+        '200': 
+          description: Successful operation
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/places' 
+        '400':
+          description: Invalid param
+        '500':
+          description: Internal Error
+  /posts/search:
+    post:
+      summary: search posts
+      description: search posts by text
+      operationId: searchPosts  
+      requestBody:
+        description: input params for search posts
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/searchPosts' 
+      responses:
+        '200': 
+          description: Successful operation
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feed' 
+        '400':
+          description: Invalid param
+        '500':
+          description: Internal Error
+  /places/{place_id}:
+    get:
+      summary: Get place
+      description: Get place by id
+      operationId: getPlace
+      parameters: 
+        - name: place_id
+          in: path
+          description: id of place what should we get
+          required: true
+          schema:
+            type: string 
+            example: 8d9f6adc-50ca-417f-8ff1-a444866eefc7                  
+      responses:
+        '200': 
+          description: Successful operation
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/place' 
+        '400':
+          description: Invalid param
+        '500':
+          description: Internal Error
+components:
+  schemas:
+    searchPlaces:
+      type: object
+      properties:
+        search_text:
+          type: string
+          example: Калининград, куршская коса
+    searchPosts:
+      type: object
+      properties:
+        search_text:
+          type: string
+          example: Как я съездил туда-то      
+    places: 
+      type: array
+      items: 
+        $ref: '#/components/schemas/place'
+    place:
+      type: object
+      properties:
+        place_id: 
+          type: string
+          example: ffb5daf3-5130-4279-a583-d45f6754ef4f
+        title:
+          type: string
+          example: Калининград, танцующий лес
+        description:
+          type: string
+          example: Танцующий лес очень-очень интересная достопримечательность Калининградской обл...             
+    feed:
+      type: object
+      properties:
+        posts: 
+          type: array
+          items: 
+            $ref: '#/components/schemas/newPost'
+    rating:
+      type: object
+      properties:
+        user_id: 
+          type: string
+          example: 6e4460ec-8418-4774-9be7-9e376bdb1c96
+        post_id:
+          type: string
+          example: 09144315-c9dd-46bc-9b83-408ba1f45d5c
+        rating: 
+          type: number
+          description: Rating from 1 to 5
+          example: 5    
+    commentResponse:
+      type: object
+      properties:
+        comment_id:
+          type: string
+          example: 4e1c487c-d640-40f6-b6dc-176b1ab6c33e
+    comment:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: 0dcd5584-ca9c-43a7-b616-184e63681050
+        post_id:
+          type: string
+          example: ab0f39cb-9548-474e-adf3-b47e3e6b9780  
+        text: 
+          type: string
+          example: автору 0 лет
+    newPostResponse:
+      type: object
+      properties:
+        post_id: 
+          type: string
+          example: d75ef6b2-39e1-44c3-9cf7-b2ef7bde17a2
+    newPost:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: 0dcd5584-ca9c-43a7-b616-184e63681050
+        title:
+          type: string
+          example: Как я слетал в Калининград
+        text:
+          type: string
+          example: Сегодня я поведаю как слетал в Калининград. И так...
+        attached_place_id:
+          type: integer
+          format: int64
+          example: 1488
+    uploadedImage:
+      type: object
+      properties:
+        image_link: 
+          type: string
+          example: https://our-cdn.ru/your-uploaded-image         
