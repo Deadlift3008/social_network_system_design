@@ -1,0 +1,7 @@
+Table ratings {
+  id int [primary key]
+  value int
+  post_id int
+  author_id int
+  created_at timestamp
+}

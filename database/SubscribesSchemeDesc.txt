@@ -1,0 +1,5 @@
+Table subscribes {
+  user_id int [primary key]
+  followed_user_id int
+  created_at timestamp
+}
