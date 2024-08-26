@@ -1,0 +1,6 @@
+Table places {
+  id int
+  text text
+  title varchar
+  created_at timestamp
+}
