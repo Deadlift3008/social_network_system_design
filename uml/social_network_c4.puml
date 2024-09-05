@@ -1,0 +1,57 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(personAlias, "Юзер", "")
+Container(apiGatewayAlias, "API Gateway", "", "")
+ContainerDb(imagesAlias, "Images S3", "", "Хранилище картинок")
+
+System_Boundary(cdc, 'Преподсчет ленты') {
+    Container(FeedsServiceAlias, "Feeds Service", "", "Лента")
+    ContainerQueue(feedsQueueAlias, "FeedsQueue", "", "События с добавлением/удалением поста для пересчета ленты")
+    ContainerDb(FeedsDBAlias, "FeedsDB", "", "Предпосчитанная лента для пользователя")
+}
+
+System_Boundary(ratings, 'Оценки') {
+    Container(ratingServiceAlias, "Rating Service", "", "")
+    ContainerDb(ratingsDBAlias, "RatingsDB", "", "ClickHouse с оценками")
+}
+
+System_Boundary(postsComments, 'Посты с комментами') {
+    ContainerDb(postsCommentsDBAlias, "PostsCommentsDB", "", "PgSQL с постами и комментами")
+    Container(postsCommentsServiceAlias, "PostsCommentsService", "", "")
+}
+
+System_Boundary(subscribes, 'Подписки') {
+    Container(SubscribesServiceAlias, "SubscribesService", "", "Сервис подписок")
+    ContainerDb(subscribesDBAlias, "SubscribesDB", "", "Подписки")
+}
+
+System_Boundary(places, 'Популярные места') {
+    Container(placesServiceAlias, "PlacesService", "", "")
+    ContainerDb(placesDB, "PlacesDB", "", "Библиотека популярных мест")
+}
+
+Rel(personAlias, apiGatewayAlias, "", "")
+
+Rel(apiGatewayAlias, ratingServiceAlias, "Выставление оценки", "")
+Rel(apiGatewayAlias, postsCommentsServiceAlias, "Добавление поста/коммента", "")
+Rel(apiGatewayAlias, FeedsServiceAlias, "запрос на ленту", "")
+Rel(apiGatewayAlias, imagesAlias, "запрос/заливка картинки", "")
+Rel(apiGatewayAlias, SubscribesServiceAlias, "подписка", "")
+
+Rel(ratingServiceAlias, ratingsDBAlias, "", "")
+Rel(ratingServiceAlias, postsCommentsServiceAlias, "Выставление итоговой оценки поста", "")
+
+Rel(postsCommentsServiceAlias, postsCommentsDBAlias, "", "")
+Rel(postsCommentsDBAlias, feedsQueueAlias, "CDC", "")
+
+Rel(postsCommentsServiceAlias, placesServiceAlias, "", "")
+Rel(placesServiceAlias, placesDB, "", "")
+
+Rel(feedsQueueAlias, FeedsServiceAlias, "", "")
+Rel(SubscribesServiceAlias, subscribesDBAlias, "", "")
+
+Rel(FeedsServiceAlias, SubscribesServiceAlias, "", "")
+Rel(FeedsServiceAlias, postsCommentsServiceAlias, "", "")
+Rel(FeedsServiceAlias, FeedsDBAlias, "", "")
+@enduml
