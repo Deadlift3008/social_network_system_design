@@ -3,32 +3,32 @@
 
 Person(personAlias, "Юзер", "")
 Container(apiGatewayAlias, "API Gateway", "", "")
-ContainerDb(imagesAlias, "Images S3", "", "Хранилище картинок")
+ContainerDb(imagesAlias, "Images blob storage", "Azure blob storage", "Хранилище картинок")
 
 System_Boundary(cdc, 'Преподсчет ленты') {
     Container(FeedsServiceAlias, "Feeds Service", "", "Лента")
-    ContainerQueue(feedsQueueAlias, "FeedsQueue", "", "События с добавлением/удалением поста для пересчета ленты")
-    ContainerDb(FeedsDBAlias, "FeedsDB", "", "Предпосчитанная лента для пользователя")
+    ContainerQueue(feedsQueueAlias, "FeedsQueue", "Kafka", "События с добавлением/удалением поста для пересчета ленты")
+    ContainerDb(FeedsDBAlias, "FeedsDB", "MongoDB", "Предпосчитанная лента для пользователя")
 }
 
 System_Boundary(ratings, 'Оценки') {
     Container(ratingServiceAlias, "Rating Service", "", "")
-    ContainerDb(ratingsDBAlias, "RatingsDB", "", "ClickHouse с оценками")
+    ContainerDb(ratingsDBAlias, "RatingsDB", "ClickHouse", "Оценки")
 }
 
 System_Boundary(postsComments, 'Посты с комментами') {
-    ContainerDb(postsCommentsDBAlias, "PostsCommentsDB", "", "PgSQL с постами и комментами")
+    ContainerDb(postsCommentsDBAlias, "PostsCommentsDB", "PgSQL", "Посты с комментами")
     Container(postsCommentsServiceAlias, "PostsCommentsService", "", "")
 }
 
 System_Boundary(subscribes, 'Подписки') {
     Container(SubscribesServiceAlias, "SubscribesService", "", "Сервис подписок")
-    ContainerDb(subscribesDBAlias, "SubscribesDB", "", "Подписки")
+    ContainerDb(subscribesDBAlias, "SubscribesDB", "MongoDB", "Подписки")
 }
 
 System_Boundary(places, 'Популярные места') {
     Container(placesServiceAlias, "PlacesService", "", "")
-    ContainerDb(placesDB, "PlacesDB", "", "Библиотека популярных мест")
+    ContainerDb(placesDB, "PlacesDB", "MongoDB", "Библиотека популярных мест")
 }
 
 Rel(personAlias, apiGatewayAlias, "", "")
@@ -39,19 +39,20 @@ Rel(apiGatewayAlias, FeedsServiceAlias, "запрос на ленту", "")
 Rel(apiGatewayAlias, imagesAlias, "запрос/заливка картинки", "")
 Rel(apiGatewayAlias, SubscribesServiceAlias, "подписка", "")
 
-Rel(ratingServiceAlias, ratingsDBAlias, "", "")
+Rel(ratingServiceAlias, ratingsDBAlias, "Сохраняет/получает оценки", "")
 Rel(ratingServiceAlias, postsCommentsServiceAlias, "Выставление итоговой оценки поста", "")
 
-Rel(postsCommentsServiceAlias, postsCommentsDBAlias, "", "")
+Rel(postsCommentsServiceAlias, postsCommentsDBAlias, "Сохраняет/получает пост", "")
 Rel(postsCommentsDBAlias, feedsQueueAlias, "CDC", "")
 
-Rel(postsCommentsServiceAlias, placesServiceAlias, "", "")
-Rel(placesServiceAlias, placesDB, "", "")
+Rel(postsCommentsServiceAlias, placesServiceAlias, "Получает популярное место из поста", "")
+Rel(placesServiceAlias, placesDB, "Сохраняет/запрашивает популярное место", "")
 
-Rel(feedsQueueAlias, FeedsServiceAlias, "", "")
-Rel(SubscribesServiceAlias, subscribesDBAlias, "", "")
+Rel(feedsQueueAlias, FeedsServiceAlias, "Переподсчет ленты по сообщению из очереди", "")
+Rel(SubscribesServiceAlias, subscribesDBAlias, "Сохраняет подписки", "")
+Rel(SubscribesServiceAlias, feedsQueueAlias, "Добавление сообщения добавления/удаления подписки для переподсчета", "")
 
-Rel(FeedsServiceAlias, SubscribesServiceAlias, "", "")
-Rel(FeedsServiceAlias, postsCommentsServiceAlias, "", "")
-Rel(FeedsServiceAlias, FeedsDBAlias, "", "")
+Rel(FeedsServiceAlias, SubscribesServiceAlias, "Запрашивает актуальные подписки", "")
+Rel(FeedsServiceAlias, postsCommentsServiceAlias, "Запрос на все посты подписок", "")
+Rel(FeedsServiceAlias, FeedsDBAlias, "Запрос на сохранение/взятие предпосчитанной ленты", "")
 @enduml
